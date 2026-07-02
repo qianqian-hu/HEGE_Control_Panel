@@ -21,6 +21,22 @@
 -CAN reception remains active in both MANUAL and AUTO mode.
 
 ## 3. System Function
+AUTO_MODE
+  │
+  │ encoder selects MANUAL
+  │
+WAIT_MANUAL_CONFIRMATION
+  │
+  │ main system confirms manual control
+  │
+MANUAL_MODE
+  │
+  │ encoder selects AUTO
+  │
+AUTO_MODE
+
+:CAN messages are always received; Physical input is always read, but physical input is only accepted in MANUAL_ACTIVE.
+
 ## 4. CAN Communication
    ### 4.1 Received CAN Messages
    不受到state maschine的控制，持续接收can 信号
