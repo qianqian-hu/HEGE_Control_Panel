@@ -92,6 +92,15 @@ AUTO_MODE ──(mode encoder selects MANUAL /
    
 ## 5. UI Layout
 
+| UI item        | Source type                          | Source                         | Description                                                                 |
+| -------------- | ------------------------------------ | ------------------------------ | --------------------------------------------------------------------------- |
+| CAN connected  | Software status                      | CAN receive check              | Shows `Connected` if valid CAN frames are received; otherwise shows `Error` |
+| Battery        | CAN feedback                         | `0x215`, Byte 6–7              | Displays battery state of charge                                            |
+| Speed          | CAN feedback                         | `0x315`, Byte 0–3 and Byte 4–7 | Displays left and right speed feedback                                      |
+| Steering mode  | CAN feedback                         | `0x215`, Byte 4                | Displays steering/output feedback; bit mapping still has to be confirmed    |
+| Emergency stop | Local physical input                 | Emergency stop button          | Displays whether the local emergency stop is active                         |
+| Mode           | Local physical input + state machine | Mode encoder and control state | Displays `AUTO`, `WAIT_EXT_CONTROL_OK`, or `MANUAL_ACTIVE`                  |
+| Gear           | CAN feedback                         | `0x215`, Byte 5                | Displays current gear                                                       |
 
 
 ## 6. Physical Inputs
