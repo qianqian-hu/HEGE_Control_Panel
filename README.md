@@ -52,8 +52,17 @@ AUTO_MODE ──(mode encoder selects MANUAL /
       0x315  |  recieve speed feedback
       0x215  |  Receive control confirmation / challenge / status feedback, including SOC
 
-**byte 0**
-      
+**0x215**
+| Byte | Content |
+| 0    | activation status    
+| 2    | shift value
+| 4    | Feedback of outputs 
+| 5    | current gear
+| 6-7  | SOC    
+**0x315**
+ | Byte | Content |
+ |0–3	  | speed left	signed |
+ |4–7	  | speed right	signed |
    
    ### 4.2 Transmitted CAN Messages
 
@@ -82,6 +91,9 @@ AUTO_MODE ──(mode encoder selects MANUAL /
    ### 4.3 CAN Timeout
    
 ## 5. UI Layout
+
+
+
 ## 6. Physical Inputs
 ## 7. Timing
 ## 8. Safety and Error Handling
