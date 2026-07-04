@@ -22,18 +22,18 @@
 
 ## 3. State mashine
 AUTO_MODE ──(mode encoder selects MANUAL /
-              send external control request)──► WAIT_EXT_CONTROL_OK
-    ▲                                                   │
+              send external control request)──► WAIT_EXT_CONTROL_OK(0x215 recieved)
+    ▲              (0x195 send)                         │
     │                                                   │
-    │                         (request denied           │
-    │                          or timeout)              │
     │                                                   │
+    │                  (request denied                  │
+    │                      or timeout)                  │
     └───────────────────────────────────────────────────┘
                                                         │
-                                      (main system accepted)
+                                      (main system accepted) 
                                                         │
                                                         ▼
-                                                MANUAL_ACTIVE
+                                                MANUAL_ACTIVE(0x295)
                                                         │
                                                         │
                          (mode encoder selects AUTO /
@@ -49,8 +49,36 @@ AUTO_MODE ──(mode encoder selects MANUAL /
    ### 4.1 Received CAN Messages
    不受到state maschine的控制，持续接收can 信号
    
-   ### 4.2 Transmitted CAN Messages
+      0x315  |  recieve speed feedback
+      0x215  |  Receive control confirmation / challenge / status feedback, including SOC
+
+**byte 0**
+      
    
+   ### 4.2 Transmitted CAN Messages
+
+   0x195  |  Send external control request / auth reply / deactivate
+   0x295  |  speed control (direktions & speed)
+
+   
+**0x295 speed frame layout:**
+
+| Byte | Content |
+
+| 0 | `0x03 \| (dir << 4) \| (dir << 6)` — direction flags | 
+| 1–2 | Speed magnitude, little-endian (repeated in bytes 3–4) |
+| 5 | `0x01` (active flag) |
+| 6–7 | `0x00` |
+
+**byte 0**
+|Vehicle movement | dir_left | dir_right |
+
+| Forward         |   `1`    |    `1`    |
+| Backward        |   `2`    |    `2`    |
+| Left turn       |   `2`    |    `1`    |
+| Right turn      |   `1`    |    `2`    |
+| Neutral / Stop  |   `0`    |    `0`    |
+
    ### 4.3 CAN Timeout
    
 ## 5. UI Layout
