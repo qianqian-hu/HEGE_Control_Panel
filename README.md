@@ -102,7 +102,7 @@ AUTO_MODE ──(mode encoder selects MANUAL /
 | Steering mode  | CAN feedback                         | `0x215`, Byte 4                | Displays steering/output feedback; bit mapping still has to be confirmed    |
 | Emergency stop | Local physical input                 | Emergency stop button          | Displays whether the local emergency stop is active                         |
 | Mode           | Local physical input + state machine | Mode encoder and control state | Displays `AUTO`, `WAIT_EXT_CONTROL_OK`, or `MANUAL_ACTIVE`                  |
-| Gear           | CAN feedback                         | `0x215`, Byte 5                | Displays current gear                                                       |
+
 
 
 ## 6. Physical Inputs
