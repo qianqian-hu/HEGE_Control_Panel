@@ -54,8 +54,10 @@ AUTO_MODE ──(mode encoder selects MANUAL /
 
 **0x215**
 | Byte | Content |
-| 0    | activation status    
+| 0    | activation status   
+| 1    | random number
 | 2    | shift value
+| 3    |
 | 4    | Feedback of outputs 
 | 5    | current gear
 | 6-7  | SOC    
