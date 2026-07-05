@@ -1,41 +1,38 @@
 #include <Arduino.h>
 
+#include "can/CanDriver.h"
+#include "can/CanFrame.h"
 #include "ui/VehicleStatus.h"
 
-void setup() {
-    Serial.begin(115200);
-    delay(1000);
+static unsigned long lastPrintMs = 0;
 
-    Serial.println("HEGE Control Panel VehicleStatus test started");
+static void printByteHex(uint8_t value)
+{
+    if (value < 0x10) {
+        Serial.print("0");
+    }
+    Serial.print(value, HEX);
+}
 
-    // ==========================
-    // Simulated 0x215 CAN frame
-    // SOC raw = 0x01B4 = 436
-    // Battery = 43.6 %
-    // ==========================
+static void printCanFrame(const CanFrame& frame)
+{
+    Serial.print("[RX] ID=0x");
+    Serial.print(frame.id, HEX);
+    Serial.print(" DLC=");
+    Serial.print(frame.dlc);
+    Serial.print(" DATA=");
 
-    uint8_t test215[8] = {
-        0x03, 0xFF, 0x03, 0x00,
-        0x00, 0x01, 0xB4, 0x01
-    };
+    for (uint8_t i = 0; i < frame.dlc && i < 8; i++) {
+        printByteHex(frame.data[i]);
+        Serial.print(" ");
+    }
 
-    parse_can_message(0x215, test215, 8);
+    Serial.println();
+}
 
-    // ==========================
-    // Simulated 0x315 CAN frame
-    // leftRaw  = -100
-    // rightRaw = +100
-    // ==========================
-
-    uint8_t test315[8] = {
-        0x9C, 0xFF, 0xFF, 0xFF,
-        0x64, 0x00, 0x00, 0x00
-    };
-
-    parse_can_message(0x315, test315, 8);
-
-    // Simulate automatic mode.
-    update_vehicle_mode(false);
+static void printVehicleStatus()
+{
+    Serial.println("---------- VehicleStatus ----------");
 
     Serial.print("CAN connected: ");
     Serial.println(vehicleStatus.canConnected ? "true" : "false");
@@ -64,9 +61,47 @@ void setup() {
     Serial.print("Manual mode: ");
     Serial.println(vehicleStatus.manualMode ? "true" : "false");
 
-    Serial.println("VehicleStatus test finished");
+    Serial.println("-----------------------------------");
 }
 
-void loop() {
+void setup()
+{
+    Serial.begin(115200);
     delay(1000);
+
+    Serial.println("HEGE Control Panel real CAN RX test started");
+
+    reset_vehicle_status();
+
+    bool canReady = can_driver_init();
+
+    if (canReady) {
+        Serial.println("[INIT] CAN ready.");
+    } else {
+        Serial.println("[INIT] CAN not ready.");
+    }
+
+    update_vehicle_mode(false);
+}
+
+void loop()
+{
+    CanFrame rxFrame;
+
+    while (can_driver_receive(rxFrame)) {
+        printCanFrame(rxFrame);
+
+        parse_can_message(
+            rxFrame.id,
+            rxFrame.data,
+            rxFrame.dlc
+        );
+    }
+
+    if (millis() - lastPrintMs >= 1000) {
+        lastPrintMs = millis();
+        printVehicleStatus();
+    }
+
+    delay(5);
 }
