@@ -5,13 +5,13 @@
 // ==========================
 
 VehicleStatus vehicleStatus = {
-    false,              // canConnected
+    false,              // canConnected = HEGE authenticated / takes control
 
     false,              // batteryValid
     0.0f,               // battery
 
-    false,              // driveModeValid
-    false,              // manualMode, default = Automatic
+    false,              // driveModeValid, false = Null
+    false,              // manualMode, false = Automatic, true = Manual
 
     false,              // steeringValid
     DIRECTION_NULL,     // steering
@@ -52,8 +52,6 @@ static int32_t abs_i32(int32_t value)
 static int speed_rpm_to_scale_0_1000(int32_t rpm)
 {
     int32_t absRpm = abs_i32(rpm);
-
-    // target 1000 approximately corresponds to 4500 rpm
     int32_t scaled = absRpm * 1000 / 4500;
 
     if (scaled > 1000) {
@@ -74,8 +72,8 @@ void reset_vehicle_status()
     vehicleStatus.batteryValid = false;
     vehicleStatus.battery = 0.0f;
 
-    vehicleStatus.driveModeValid = false;
-    vehicleStatus.manualMode = false;
+    vehicleStatus.driveModeValid = false;   // Null
+    vehicleStatus.manualMode = false;       // Automatic only after CAN is detected
 
     vehicleStatus.steeringValid = false;
     vehicleStatus.steering = DIRECTION_NULL;
@@ -90,12 +88,15 @@ void reset_vehicle_status()
 
 // ==========================
 // Update vehicle mode from state machine
+// manualMode = true  -> Manual / HEGE takes control
+// manualMode = false -> Automatic / CAN detected but not controlled by HEGE
 // ==========================
 
 void update_vehicle_mode(bool manualMode)
 {
     vehicleStatus.manualMode = manualMode;
     vehicleStatus.driveModeValid = true;
+    vehicleStatus.canConnected = manualMode;
 }
 
 // ==========================
@@ -104,20 +105,14 @@ void update_vehicle_mode(bool manualMode)
 
 void update_steering(int32_t leftRaw, int32_t rightRaw)
 {
-    // The left crawler feedback is negative during forward movement.
     int32_t leftLogical = -leftRaw;
     int32_t rightLogical = rightRaw;
 
     const int32_t ZERO_THRESHOLD = 10;
     const int32_t TURN_THRESHOLD = 20;
 
-    if (abs_i32(leftLogical) <= ZERO_THRESHOLD) {
-        leftLogical = 0;
-    }
-
-    if (abs_i32(rightLogical) <= ZERO_THRESHOLD) {
-        rightLogical = 0;
-    }
+    if (abs_i32(leftLogical) <= ZERO_THRESHOLD) leftLogical = 0;
+    if (abs_i32(rightLogical) <= ZERO_THRESHOLD) rightLogical = 0;
 
     if (leftLogical == 0 && rightLogical == 0) {
         vehicleStatus.steering = DIRECTION_NULL;
@@ -172,7 +167,12 @@ void parse_can_message(uint32_t id, const uint8_t* data, uint8_t dlc)
         return;
     }
 
-    vehicleStatus.canConnected = true;
+    // Any valid CAN message means CAN activity is detected.
+    // Before HEGE authentication, drive mode should be Automatic.
+    if (!vehicleStatus.canConnected) {
+        vehicleStatus.driveModeValid = true;
+        vehicleStatus.manualMode = false;
+    }
 
     // ==========================
     // 0x215: Battery / SOC

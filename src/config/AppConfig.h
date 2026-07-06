@@ -4,8 +4,8 @@
 // CAN GPIO
 // ==========================
 
-#define CAN_TX_GPIO             43
-#define CAN_RX_GPIO             44
+#define CAN_TX_GPIO             20
+#define CAN_RX_GPIO             19
 
 // ==========================
 // Physical input GPIO
