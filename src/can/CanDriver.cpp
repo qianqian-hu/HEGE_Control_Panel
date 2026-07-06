@@ -25,11 +25,21 @@ static bool gpio_config_available()
 
 bool can_driver_init()
 {
+    Serial.println("[CAN] init entered");
+    Serial.flush();
+
     if (!gpio_config_available()) {
         Serial.println("[CAN] GPIO not configured. CAN driver disabled.");
+        Serial.flush();
         driverState = CanDriverState::NOT_CONFIGURED;
         return false;
     }
+
+    Serial.print("[CAN] TX GPIO = ");
+    Serial.println(CAN_TX_GPIO);
+    Serial.print("[CAN] RX GPIO = ");
+    Serial.println(CAN_RX_GPIO);
+    Serial.flush();
 
     twai_general_config_t generalConfig =
         TWAI_GENERAL_CONFIG_DEFAULT(
@@ -39,29 +49,43 @@ bool can_driver_init()
         );
 
     twai_timing_config_t timingConfig = TWAI_TIMING_CONFIG_500KBITS();
-
     twai_filter_config_t filterConfig = TWAI_FILTER_CONFIG_ACCEPT_ALL();
+
+    Serial.println("[CAN] before twai_driver_install");
+    Serial.flush();
 
     esp_err_t installResult =
         twai_driver_install(&generalConfig, &timingConfig, &filterConfig);
 
+    Serial.println("[CAN] after twai_driver_install");
+    Serial.flush();
+
     if (installResult != ESP_OK) {
         Serial.print("[CAN] TWAI driver install failed. Error: ");
         Serial.println((int)installResult);
+        Serial.flush();
         driverState = CanDriverState::ERROR;
         return false;
     }
 
+    Serial.println("[CAN] before twai_start");
+    Serial.flush();
+
     esp_err_t startResult = twai_start();
+
+    Serial.println("[CAN] after twai_start");
+    Serial.flush();
 
     if (startResult != ESP_OK) {
         Serial.print("[CAN] TWAI start failed. Error: ");
         Serial.println((int)startResult);
+        Serial.flush();
         driverState = CanDriverState::ERROR;
         return false;
     }
 
     Serial.println("[CAN] TWAI driver started.");
+    Serial.flush();
     driverState = CanDriverState::READY;
     return true;
 }

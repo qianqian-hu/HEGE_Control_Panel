@@ -78,6 +78,7 @@ void update_hege_ui(lv_timer_t *timer)
 
     char buffer[100];
 
+    // canConnected now means HEGE is authenticated / taking control
     snprintf(buffer, sizeof(buffer), "CAN Status: %s",
              vehicleStatus.canConnected ? "Connected" : "ERROR");
     lv_label_set_text(label_can, buffer);
@@ -89,11 +90,14 @@ void update_hege_ui(lv_timer_t *timer)
     }
     lv_label_set_text(label_battery, buffer);
 
-    if (vehicleStatus.driveModeValid) {
-        snprintf(buffer, sizeof(buffer), "Drive Mode: %s",
-                 vehicleStatus.manualMode ? "Manual" : "Automatic");
-    } else {
+    if (!vehicleStatus.driveModeValid) {
         snprintf(buffer, sizeof(buffer), "Drive Mode: NULL");
+    }
+    else if (vehicleStatus.canConnected) {
+        snprintf(buffer, sizeof(buffer), "Drive Mode: Manual");
+    }
+    else {
+        snprintf(buffer, sizeof(buffer), "Drive Mode: Automatic");
     }
     lv_label_set_text(label_drive, buffer);
 

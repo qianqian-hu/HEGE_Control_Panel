@@ -21,12 +21,12 @@ enum VehicleDirection {
 // ==========================
 
 struct VehicleStatus {
-    bool canConnected;
+    bool canConnected;          // true = HEGE authenticated / takes control
 
     bool batteryValid;
     float battery;              // percent, SOC raw * 0.1
 
-    bool driveModeValid;
+    bool driveModeValid;        // false = Null, true = CAN activity detected
     bool manualMode;            // true = Manual, false = Automatic
 
     bool steeringValid;
@@ -57,4 +57,5 @@ void parse_can_message(uint32_t id, const uint8_t* data, uint8_t dlc);
 
 void update_steering(int32_t leftRaw, int32_t rightRaw);
 
+// Called when HEGE authentication / control mode changes
 void update_vehicle_mode(bool manualMode);

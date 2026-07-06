@@ -16,9 +16,7 @@ static unsigned long lastPrintMs = 0;
 
 static void printByteHex(uint8_t value)
 {
-    if (value < 0x10) {
-        Serial.print("0");
-    }
+    if (value < 0x10) Serial.print("0");
     Serial.print(value, HEX);
 }
 
@@ -75,6 +73,9 @@ static void printVehicleStatus()
 void setup()
 {
     Serial.begin(115200);
+    delay(1000);
+
+    Serial.println("===== HEGE MAIN START =====");
 
     Serial.println("Initializing board");
 
@@ -94,12 +95,36 @@ void setup()
 #endif
 #endif
 
-    assert(board->begin());
+    Serial.println("Before board begin");
+    bool boardReady = board->begin();
+    Serial.println("After board begin");
 
-    Serial.println("Initializing LVGL");
+    if (!boardReady) {
+        Serial.println("[INIT] Board begin failed.");
+    }
+
+    Serial.println("Before reset_vehicle_status");
+    reset_vehicle_status();
+    Serial.println("After reset_vehicle_status");
+
+    Serial.println("Before CAN init");
+    bool canReady = can_driver_init();
+    Serial.println("After CAN init");
+
+    if (canReady) {
+        Serial.println("[INIT] CAN ready.");
+    } else {
+        Serial.println("[INIT] CAN not ready.");
+    }
+
+    // 不要开机默认 Automatic
+    // update_vehicle_mode(false);
+
+    Serial.println("Before LVGL init");
     lvgl_port_init(board->getLCD(), board->getTouch());
+    Serial.println("After LVGL init");
 
-    Serial.println("Creating HEGE Control Panel UI");
+    Serial.println("Before create HEGE UI");
 
     lvgl_port_lock(-1);
 
@@ -110,22 +135,6 @@ void setup()
     lvgl_port_unlock();
 
     Serial.println("HEGE UI started");
-
-    delay(1000);
-
-    Serial.println("HEGE Control Panel real CAN RX test started");
-
-    reset_vehicle_status();
-
-    bool canReady = can_driver_init();
-
-    if (canReady) {
-        Serial.println("[INIT] CAN ready.");
-    } else {
-        Serial.println("[INIT] CAN not ready.");
-    }
-
-    update_vehicle_mode(false);
 }
 
 void loop()
@@ -144,6 +153,7 @@ void loop()
 
     if (millis() - lastPrintMs >= 1000) {
         lastPrintMs = millis();
+        Serial.println("loop alive");
         printVehicleStatus();
     }
 
